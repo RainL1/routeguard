@@ -1,0 +1,32 @@
+/** @page usage_gui Использование GUI
+
+@section gui_features Возможности GUI
+
+GUI-версия предоставляет:
+- выбор файла конфигурации WireGuard (`.conf`);
+- выбор режима `monitor` / `protect`;
+- RU/EN локализацию интерфейса;
+- предпросмотр автосгенерированного RouteGuard-конфига;
+- запуск/остановку защиты;
+- просмотр статуса и логов;
+- отдельную кнопку удаления правил `nftables`.
+
+@section gui_run Запуск
+
+@code{.sh}
+sudo python3 routeguard_gui.py
+@endcode
+
+Если в Linux возникает ошибка доступа к display при запуске под root (Tkinter + X11), можно использовать:
+@code{.sh}
+xhost +SI:localuser:root
+sudo env DISPLAY=$DISPLAY XAUTHORITY=${XAUTHORITY:-$HOME/.Xauthority} python3 routeguard_gui.py
+@endcode
+
+@section gui_safety Безопасность эксплуатации
+
+- Перед режимом `protect` рекомендуется нажать **Preview** и проверить интерфейс/endpoint.
+- Для аварийного снятия правил можно использовать кнопку **Remove nft rules**.
+- При штатной остановке (кнопка **Stop**) правила `nftables` удаляются автоматически, если включен cleanup.
+
+*/

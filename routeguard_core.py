@@ -30,6 +30,7 @@ STATE_PATHS = [Path("/run/routeguard-auto/state.json"), Path("/tmp/routeguard-au
 
 
 class RouteGuardError(RuntimeError):
+    """Base runtime exception used by RouteGuard core operations."""
     pass
 
 
@@ -76,6 +77,7 @@ def command_exists(cmd: str) -> bool:
 
 
 def parse_wireguard_config(path: str) -> dict:
+    """Parse a WireGuard .conf file and return interface/peer sections."""
     p = Path(path)
     if not p.exists():
         raise RouteGuardError(f"WireGuard config not found: {path}")
@@ -150,6 +152,7 @@ def resolve_host_ips(host: str) -> List[str]:
 
 
 def build_generated_config_from_wg(wg_config_path: str, *, mode: str='monitor', vpn_iface: Optional[str]=None, allow_lan: bool=True, allow_dhcp: bool=True, poll_interval_sec: int=DEFAULT_INTERVAL) -> GeneratedConfig:
+    """Create a normalized RouteGuard configuration from a WireGuard config file."""
     data = parse_wireguard_config(wg_config_path)
     iface_name = vpn_iface or infer_iface_name_from_wg_path(wg_config_path)
     endpoints: List[EndpointRule] = []
@@ -174,6 +177,7 @@ def interface_exists(iface: str) -> bool:
 
 
 def build_nft_script(cfg: GeneratedConfig) -> str:
+    """Build an nftables script implementing a RouteGuard output kill-switch."""
     iface = cfg.vpn_iface.replace('"', '')
     lines = [
         f'table {ROUTEGUARD_TABLE_FAMILY} {ROUTEGUARD_TABLE_NAME} {{',
@@ -200,8 +204,10 @@ def routeguard_table_exists() -> bool:
 
 
 def apply_nft_rules(cfg: GeneratedConfig, logger: Callable[[str], None]=default_logger) -> None:
+    """Apply RouteGuard nftables rules for the provided generated config."""
     if not command_exists('nft'):
         raise RouteGuardError('nft command not found. Install nftables.')
+    # Remove previous ruleset safely (ignored if table is absent).
     remove_nft_rules(logger=lambda _msg: None)
     script = build_nft_script(cfg)
     cp = run_cmd(['nft', '-f', '-'], check=False, input_data=script)
@@ -214,6 +220,7 @@ def apply_nft_rules(cfg: GeneratedConfig, logger: Callable[[str], None]=default_
 
 
 def remove_nft_rules(logger: Callable[[str], None]=default_logger) -> None:
+    """Remove the RouteGuard nftables table if it exists."""
     if not command_exists('nft'):
         return
     cp = run_cmd(['nft', 'delete', 'table', ROUTEGUARD_TABLE_FAMILY, ROUTEGUARD_TABLE_NAME], check=False)
@@ -239,6 +246,7 @@ def ip_json_routes(ipv6: bool=False) -> List[dict]:
 
 
 def suspicious_routes(routes: List[dict], vpn_iface: str, ipv6: bool=False) -> List[str]:
+    """Detect split-default routes routed via a non-VPN interface."""
     targets = {'::/1', '8000::/1'} if ipv6 else {'0.0.0.0/1', '128.0.0.0/1'}
     out: List[str] = []
     for r in routes:
@@ -253,7 +261,7 @@ def check_dependencies(require_tk: bool=False) -> List[str]:
     missing = [cmd for cmd in ('ip', 'nft') if not command_exists(cmd)]
     if require_tk:
         try:
-            import tkinter
+            import tkinter  # noqa: F401
         except Exception:
             missing.append('python-tk')
     return missing
@@ -326,6 +334,8 @@ def process_alive(pid: int) -> bool:
 
 
 class RouteGuardRunner:
+    """Foreground runner that manages lifecycle, monitoring, and cleanup."""
+
     def __init__(self, cfg: GeneratedConfig, *, logger: Callable[[str], None]=default_logger, auto_up_vpn: bool=False, auto_down_vpn_on_exit: bool=False, cleanup_nft_on_exit: bool=True):
         self.cfg = cfg
         self.logger = logger
@@ -357,6 +367,7 @@ class RouteGuardRunner:
         raise RouteGuardError(f"VPN interface '{self.cfg.vpn_iface}' not found.")
 
     def run(self) -> int:
+        """Run the monitoring/protection loop until stop is requested."""
         self._install_signals()
         self.logger(f"RouteGuard starting: mode={self.cfg.mode}, iface={self.cfg.vpn_iface}, interval={self.cfg.poll_interval_sec}s")
         self.logger('Endpoints: ' + ', '.join([f"{e.ip}:{e.port}/{e.proto}" for e in (self.cfg.vpn_endpoints or [])]))
@@ -410,4 +421,5 @@ def ensure_root_if_needed(mode: str) -> None:
 
 
 def status_summary() -> dict:
+    """Return a compact runtime status summary used by CLI/GUI."""
     return {'routeguard_nft_table_present': routeguard_table_exists(), 'state': read_state()}

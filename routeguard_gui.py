@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""Graphical user interface for RouteGuard Auto Suite.
+
+Tkinter-based GUI with modernized light theme, RU/EN localization, config
+preview, logs, and controls for start/stop/status/cleanup operations.
+"""
 from __future__ import annotations
 
 import json
@@ -128,6 +133,8 @@ I18N = {
 
 
 class RouteGuardGUI(tk.Tk):
+    """Main application window for RouteGuard GUI control panel."""
+
     def __init__(self):
         super().__init__()
         self.lang = tk.StringVar(value='ru')
@@ -139,7 +146,7 @@ class RouteGuardGUI(tk.Tk):
         self.runner = None
         self.worker = None
         self._txt_widgets: dict[str, list[tuple[object, str]]] = {}
-        self._status_kind = 'idle'
+        self._status_kind = 'idle'  # idle/running/error/warn
         self._running_dots = 0
         self._anim_t = 0.0
 
@@ -161,15 +168,16 @@ class RouteGuardGUI(tk.Tk):
         except tk.TclError:
             pass
 
+        # light beige / white minimalist palette
         self._colors = {
-            'bg': '#f6f2ea'
-            'panel': '#fffdf8',
-            'panel_alt': '#f0e9dd',
+            'bg': '#f6f2ea',          # warm background
+            'panel': '#fffdf8',       # cards
+            'panel_alt': '#f0e9dd',   # soft beige
             'surface': '#ffffff',
             'border': '#e3d8c8',
             'text': '#2b2a28',
             'muted': '#7a7368',
-            'accent': '#3366cc',
+            'accent': '#3366cc',      # calm blue
             'accent_soft': '#eaf1ff',
             'success': '#2e8b57',
             'danger': '#c14d4d',
@@ -271,6 +279,7 @@ class RouteGuardGUI(tk.Tk):
         root.grid_columnconfigure(1, weight=17)
         root.grid_rowconfigure(1, weight=1)
 
+        # Header row
         header = tk.Frame(root, bg=c['bg'])
         header.grid(row=0, column=0, columnspan=2, sticky='ew', pady=(0, 12))
         header.grid_columnconfigure(0, weight=1)
@@ -293,6 +302,7 @@ class RouteGuardGUI(tk.Tk):
         self.lang_box.pack(side='left')
         self.lang_box.bind('<<ComboboxSelected>>', lambda _e: self._apply_i18n())
 
+        # Left column cards (setup, options, actions)
         left_col = tk.Frame(root, bg=c['bg'])
         left_col.grid(row=1, column=0, sticky='nsew', padx=(0, 10))
         left_col.grid_columnconfigure(0, weight=1)
@@ -354,6 +364,7 @@ class RouteGuardGUI(tk.Tk):
         actions_wrap.grid_columnconfigure(1, weight=1)
         actions_wrap.grid_rowconfigure(3, weight=1)
 
+        # Status strip (animated dot + pill)
         status_strip = tk.Frame(actions_wrap, bg=c['panel'])
         status_strip.grid(row=0, column=0, columnspan=2, sticky='ew', pady=(0, 8))
         status_strip.grid_columnconfigure(1, weight=1)
@@ -385,11 +396,13 @@ class RouteGuardGUI(tk.Tk):
         self.cleanup_btn.grid(row=3, column=0, columnspan=2, sticky='sew', pady=(8, 0))
         self._bind_text('cleanup_btn', self.cleanup_btn)
 
+        # Right column: tabs for preview + logs
         right_col = tk.Frame(root, bg=c['bg'])
         right_col.grid(row=1, column=1, sticky='nsew')
         right_col.grid_columnconfigure(0, weight=1)
         right_col.grid_rowconfigure(0, weight=1)
 
+        # Card around notebook
         notebook_card_shadow = tk.Frame(right_col, bg=c['shadow'])
         notebook_card_shadow.grid(row=0, column=0, sticky='nsew')
         notebook_frame = tk.Frame(notebook_card_shadow, bg=c['panel'], highlightbackground=c['border'], highlightthickness=1)
@@ -445,6 +458,7 @@ class RouteGuardGUI(tk.Tk):
         self.status_var.set(text)
 
     def _animate(self):
+        # Minimal animation: pulse the status dot and animate dots while running/stopping
         self._anim_t += 0.16
         kind = self._status_kind
         if kind in ('running', 'warn'):
@@ -454,6 +468,7 @@ class RouteGuardGUI(tk.Tk):
             fill = self._mix_hex(base, glow, pulse)
             self.status_dot.itemconfig(self.status_oval, fill=fill)
         elif kind == 'error':
+            # subtle pulse for error too, slower visual emphasis
             pulse = 0.25 + 0.25 * (0.5 + 0.5 * math.sin(self._anim_t * 0.6))
             fill = self._mix_hex('#c14d4d', '#efb1b1', pulse)
             self.status_dot.itemconfig(self.status_oval, fill=fill)

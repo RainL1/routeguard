@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""Command-line interface for RouteGuard Auto Suite.
+
+This module exposes an argparse-based CLI for generating configuration from a
+WireGuard file, launching the protection/monitoring runner, printing status,
+and cleaning up nftables rules.
+"""
 from __future__ import annotations
 
 import argparse
@@ -22,10 +28,12 @@ from routeguard_core import (
 
 
 def eprint(msg: str) -> None:
+    """Print a message to stderr and flush immediately."""
     print(msg, file=sys.stderr, flush=True)
 
 
 def parse_args() -> argparse.Namespace:
+    """Build and parse CLI arguments for all supported subcommands."""
     p = argparse.ArgumentParser(prog='routeguard-cli', description='Auto-configuring RouteGuard (CLI) for WireGuard configs')
     sub = p.add_subparsers(dest='cmd', required=True)
 
@@ -123,6 +131,7 @@ def cmd_stop() -> int:
 
 
 def main() -> int:
+    """CLI entry point. Returns process exit code."""
     try:
         ns = parse_args()
         if ns.cmd == 'run':

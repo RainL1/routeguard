@@ -1,0 +1,38 @@
+/** @page usage_cli Использование CLI
+
+@section cli_quick_start Быстрый старт
+
+Предпросмотр автосгенерированного конфига:
+@code{.sh}
+python3 routeguard_cli.py print-config --wg-config /etc/wireguard/smth.conf
+@endcode
+
+Запуск в безопасном режиме мониторинга:
+@code{.sh}
+sudo python3 routeguard_cli.py run --wg-config /etc/wireguard/smth.conf --mode monitor
+@endcode
+
+Запуск с защитой и автоматическим поднятием WireGuard:
+@code{.sh}
+sudo python3 routeguard_cli.py run --wg-config /etc/wireguard/smth.conf --mode protect --up-vpn
+@endcode
+
+@section cli_stop Остановка и очистка
+
+Удаление правил nft:
+@code{.sh}
+sudo python3 routeguard_cli.py cleanup
+@endcode
+
+Остановка по state-файлу (если поддерживается сценарий запуска):
+@code{.sh}
+sudo python3 routeguard_cli.py stop
+@endcode
+
+@section cli_notes Замечания
+
+- Для `protect` требуется запуск от root.
+- Для минимизации риска самоблокировки рекомендуется сначала протестировать `monitor`.
+- Интерфейс по умолчанию выводится из имени файла (`smth.conf` -> `smth`).
+
+*/

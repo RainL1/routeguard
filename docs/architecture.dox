@@ -1,0 +1,52 @@
+/** @page architecture Архитектура RouteGuard Auto Suite
+
+@section architecture_overview Обзор
+
+Архитектура проекта разделена на три уровня:
+- **Core** (`routeguard_core.py`) — бизнес-логика и системная интеграция;
+- **CLI** (`routeguard_cli.py`) — скриптовая/консольная эксплуатация;
+- **GUI** (`routeguard_gui.py`) — пользовательское окно управления.
+
+Такое разделение повышает модульность и соответствует требованиям Blue Team к повторному использованию защитной логики в разных интерфейсах.
+
+@section architecture_core Ядро (Core)
+
+Ключевые функции:
+- разбор WireGuard-конфига (`parse_wireguard_config`);
+- извлечение/резолв endpoint (`parse_endpoint`, `resolve_host_ips`);
+- генерация унифицированной конфигурации (`build_generated_config_from_wg`);
+- генерация и применение `nftables`-правил (`build_nft_script`, `apply_nft_rules`, `remove_nft_rules`);
+- детектирование подозрительных маршрутов (`suspicious_routes`);
+- управление жизненным циклом защиты (`RouteGuardRunner`).
+
+@section architecture_interfaces Интерфейсы
+
+@subsection architecture_cli CLI
+CLI предоставляет команды:
+- `run`
+- `print-config`
+- `status`
+- `cleanup`
+- `stop`
+
+@subsection architecture_gui GUI
+GUI реализует:
+- выбор файла WireGuard-конфига;
+- предпросмотр сгенерированной конфигурации;
+- запуск/остановку в `monitor` и `protect`;
+- просмотр логов и статуса;
+- удаление `nft`-правил.
+
+@section architecture_safety Механизмы безопасной остановки
+
+При штатной остановке (CLI `Ctrl+C` / GUI `Stop`) используется:
+- сигнал остановки фонового цикла;
+- удаление `inet routeguard` (если режим `protect` и cleanup включен);
+- очистка state-файла.
+
+@section architecture_limitations Ограничения
+
+- Правила строятся для конкретного VPN-интерфейса; ошибка в имени интерфейса приводит к блокировке трафика (поэтому в GUI/CLI предусмотрен preview и возможность override).
+- GUI-процесс под root может сталкиваться с ограничениями доступа к дисплею X11/Wayland.
+
+*/

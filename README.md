@@ -95,3 +95,19 @@ sudo nft delete table inet routeguard 2>/dev/null || true
 - `routeguard-cli` и `routeguard-gui` — удобные shell-обёртки для запуска через `./routeguard-cli ...` и `./routeguard-gui`
 - `scripts/check_archive.sh` — быстрая проверка синтаксиса
 
+
+## Документация Doxygen
+
+В проект добавлена готовая конфигурация `Doxyfile` и набор страниц в каталоге `docs/`.
+
+### Генерация на Arch Linux
+```bash
+sudo pacman -S --needed doxygen graphviz
+doxygen Doxyfile
+```
+
+### Где смотреть результат
+- HTML: `docs/build/html/index.html`
+- XML: `docs/build/xml/`
+
+> `graphviz` необязателен, но позволяет строить графы и диаграммы в выводе Doxygen.
