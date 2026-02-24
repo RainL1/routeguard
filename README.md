@@ -85,7 +85,7 @@ sudo env DISPLAY=$DISPLAY XAUTHORITY=${XAUTHORITY:-$HOME/.Xauthority} python3 ro
 5. Затем `protect`
 6. Останови кнопкой **Stop** (очистка `nft` выполнится автоматически)
 
-## Экстренное восстановление интернета
+## Удаление правил в крайнем случае
 ```bash
 sudo nft delete table inet routeguard 2>/dev/null || true
 ```
