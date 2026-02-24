@@ -1,0 +1,2 @@
+## No pip dependencies required
+# Python stdlib only.

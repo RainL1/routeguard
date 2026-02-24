@@ -1,0 +1,13 @@
+[Unit]
+Description=RouteGuard Auto Suite (WireGuard auto-derived)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/routeguard-suite/routeguard_cli.py run --wg-config /etc/wireguard/wg0.conf --mode protect --up-vpn
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
